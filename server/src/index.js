@@ -5,7 +5,6 @@ const contentRoutes = require('./routes/content');
 const postRoutes = require('./routes/posts');
 const analyticsRoutes = require('./routes/analytics');
 const userRoutes = require('./routes/users');
-const healthRoutes = require('./routes/health');
 
 const app = express();
 
@@ -18,7 +17,6 @@ app.use('/api/content', contentRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/health', healthRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

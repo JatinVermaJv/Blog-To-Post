@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const contentController = require('../controllers/contentController');
 
-// Apply rate limiting to the process endpoint
-router.post('/process', contentController.limiter, contentController.processUrl);
+// Process URL endpoint
+router.post('/process', contentController.processUrl);
 
 module.exports = router; 
