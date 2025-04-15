@@ -1,38 +1,19 @@
 const prisma = require('../lib/prisma');
-const { processContent, limiter } = require('../services/aiService');
+const { processContent } = require('../services/aiService');
+const { validateUrl } = require('../middleware/validation');
 
 const processUrl = async (req, res) => {
   try {
-    const { url, userId, platform = 'twitter' } = req.body;
+    const { url, platform = 'twitter' } = req.body;
+    const userId = req.user.id; // Get userId from authenticated user
 
     // Validate URL
-    if (!url || !isValidUrl(url)) {
-      return res.status(400).json({ error: 'Invalid URL provided' });
+    if (!validateUrl(url)) {
+      return res.status(400).json({ error: 'Invalid URL format' });
     }
 
-    // Validate userId
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
-
-    // Check if user exists, if not create one
-    let user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: userId,
-          email: `${userId}@example.com`,
-          authProvider: 'test'
-        }
-      });
-    }
-
-    // TODO: Implement actual content fetching from URL
-    // For now, we'll use a mock content
-    const mockContent = `This is a sample blog post about ${url}. It contains important information that needs to be converted into a social media post.`;
+    // Mock content for testing - replace with actual content extraction
+    const mockContent = "This is a sample blog post content that will be processed by AI to generate social media posts.";
 
     // Process content using AI
     const aiResult = await processContent(mockContent, platform);
@@ -40,12 +21,13 @@ const processUrl = async (req, res) => {
     // Save processed post to database
     const processedPost = await prisma.processedPost.create({
       data: {
-        originalUrl: url,
-        summary: aiResult.content,
+        url: url,
+        content: aiResult.content,
         userId: userId,
         socialPosts: {
           create: {
             platform: platform,
+            content: aiResult.content,
             status: 'DRAFT'
           }
         }
@@ -57,32 +39,34 @@ const processUrl = async (req, res) => {
 
     res.json({
       success: true,
-      data: {
-        processedPost,
-        aiResult
-      }
+      message: 'Content processed successfully',
+      data: processedPost
     });
   } catch (error) {
     console.error('Error processing URL:', error);
-    res.status(500).json({
+    res.status(500).json({ 
       error: 'Failed to process URL',
       details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      stack: error.stack
     });
   }
 };
 
-// Helper function to validate URL
-function isValidUrl(string) {
+const getProcessedPosts = async (req, res) => {
   try {
-    new URL(string);
-    return true;
-  } catch (err) {
-    return false;
+    const userId = req.user.id;
+    const posts = await prisma.processedPost.findMany({
+      where: { userId },
+      include: { socialPosts: true }
+    });
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching processed posts:', error);
+    res.status(500).json({ error: 'Failed to fetch processed posts' });
   }
-}
+};
 
 module.exports = {
   processUrl,
-  limiter
+  getProcessedPosts
 }; 

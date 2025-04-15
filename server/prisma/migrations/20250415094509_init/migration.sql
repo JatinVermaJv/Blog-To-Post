@@ -1,8 +1,16 @@
+-- CreateEnum
+CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'SCHEDULED', 'PUBLISHED');
+
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "authProvider" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "name" TEXT,
+    "role" "UserRole" NOT NULL DEFAULT 'USER',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -12,11 +20,11 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "ProcessedPost" (
     "id" TEXT NOT NULL,
-    "originalUrl" TEXT NOT NULL,
-    "summary" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT NOT NULL,
 
     CONSTRAINT "ProcessedPost_pkey" PRIMARY KEY ("id")
 );
@@ -25,11 +33,11 @@ CREATE TABLE "ProcessedPost" (
 CREATE TABLE "SocialPost" (
     "id" TEXT NOT NULL,
     "platform" TEXT NOT NULL,
-    "scheduledTime" TIMESTAMP(3),
-    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "content" TEXT NOT NULL,
+    "status" "PostStatus" NOT NULL DEFAULT 'DRAFT',
+    "processedPostId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "processedPostId" TEXT NOT NULL,
 
     CONSTRAINT "SocialPost_pkey" PRIMARY KEY ("id")
 );

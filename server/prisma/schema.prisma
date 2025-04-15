@@ -14,33 +14,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
-  id            String         @id @default(uuid())
-  email         String        @unique
-  authProvider  String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  processedPosts ProcessedPost[]
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(USER)
+  posts     ProcessedPost[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProcessedPost {
   id          String       @id @default(uuid())
-  originalUrl String
-  summary     String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  url         String
+  content     String
   userId      String
   user        User         @relation(fields: [userId], references: [id])
   socialPosts SocialPost[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model SocialPost {
-  id            String       @id @default(uuid())
-  platform      String
-  scheduledTime DateTime?
-  status        String      @default("DRAFT")
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String        @id @default(uuid())
+  platform        String
+  content         String
+  status          PostStatus    @default(DRAFT)
   processedPostId String
   processedPost   ProcessedPost @relation(fields: [processedPostId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
