@@ -1,8 +1,9 @@
 const prisma = require('../lib/prisma');
+const { processContent, limiter } = require('../services/aiService');
 
 const processUrl = async (req, res) => {
   try {
-    const { url, userId } = req.body;
+    const { url, userId, platform = 'twitter' } = req.body;
 
     // Validate URL
     if (!url || !isValidUrl(url)) {
@@ -29,22 +30,37 @@ const processUrl = async (req, res) => {
       });
     }
 
-    // TODO: Implement actual content processing logic
-    // For now, we'll just create a mock summary
-    const summary = `Summary for ${url}`;
+    // TODO: Implement actual content fetching from URL
+    // For now, we'll use a mock content
+    const mockContent = `This is a sample blog post about ${url}. It contains important information that needs to be converted into a social media post.`;
+
+    // Process content using AI
+    const aiResult = await processContent(mockContent, platform);
 
     // Save processed post to database
     const processedPost = await prisma.processedPost.create({
       data: {
         originalUrl: url,
-        summary: summary,
-        userId: userId
+        summary: aiResult.content,
+        userId: userId,
+        socialPosts: {
+          create: {
+            platform: platform,
+            status: 'DRAFT'
+          }
+        }
+      },
+      include: {
+        socialPosts: true
       }
     });
 
     res.json({
       success: true,
-      data: processedPost
+      data: {
+        processedPost,
+        aiResult
+      }
     });
   } catch (error) {
     console.error('Error processing URL:', error);
@@ -67,5 +83,6 @@ function isValidUrl(string) {
 }
 
 module.exports = {
-  processUrl
+  processUrl,
+  limiter
 }; 
