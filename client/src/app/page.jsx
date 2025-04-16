@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import HealthCheck from '@/components/HealthCheck';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,7 +26,7 @@ export default function Home() {
               <Link href="/pricing" className="text-gray-600 hover:text-indigo-600">
                 Pricing
               </Link>
-              <Link href="/dashboard" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+              <Link href="/auth/signin" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
                 Get Started
               </Link>
             </div>
@@ -47,6 +48,13 @@ export default function Home() {
         </div>
       </nav>
 
+      {/* Health Check - Hidden in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <HealthCheck />
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -60,7 +68,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                href="/dashboard"
+                href="/auth/signin"
                 className="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition-colors"
               >
                 Start Creating
@@ -134,7 +142,7 @@ export default function Home() {
               Join thousands of content creators who are saving time and increasing engagement with Blog2Social.
             </p>
             <Link
-              href="/dashboard"
+              href="/auth/signin"
               className="bg-white text-indigo-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-indigo-50 transition-colors inline-block"
             >
               Get Started Free
