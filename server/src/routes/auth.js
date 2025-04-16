@@ -121,4 +121,57 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Google OAuth callback
+router.post('/google', async (req, res) => {
+  try {
+    const { email, name, googleId } = req.body;
+
+    if (!email || !googleId) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      // Create new user
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || email.split('@')[0],
+          password: googleId, // Using googleId as password for OAuth users
+          role: 'USER'
+        }
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id },
+      JWT_CONFIG.secret,
+      {
+        expiresIn: JWT_CONFIG.expiresIn,
+        issuer: JWT_CONFIG.issuer,
+        audience: JWT_CONFIG.audience
+      }
+    );
+
+    res.json({
+      message: 'Authentication successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
 module.exports = router; 
